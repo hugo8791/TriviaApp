@@ -1,0 +1,21 @@
+services:
+  - type: web
+    runtime: static
+    name: triviaapp-client
+    buildCommand: |
+      curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel 10.0
+      export PATH="$HOME/.dotnet:$PATH"
+      dotnet publish src/Trivia.Client/Trivia.Client.csproj -c Release -o /tmp/publish
+    staticPublishPath: /tmp/publish/wwwroot
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
+    buildFilter:
+      paths:
+        - src/Trivia.Client/**
+        - src/Trivia.Shared/**
+    headers:
+      - path: /_framework/*
+        name: Cache-Control
+        value: public, max-age=31536000, immutable
