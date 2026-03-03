@@ -1,0 +1,29 @@
+@page "/quiz"
+@inject HttpClient Http
+
+<PageTitle>Quiz</PageTitle>
+
+<h1>Trivia Quiz</h1>
+
+<p class="lead">
+    @if (questionCount == null)
+    {
+        <span>Loading...</span>
+    }
+    else
+    {
+        <span>@questionCount questions available</span>
+    }
+</p>
+
+<button class="btn btn-primary" disabled="@(questionCount == null)">
+    Start Quiz
+</button>
+
+@code {
+    int? questionCount;
+    protected override async Task OnInitializedAsync()
+    {
+        questionCount = await Http.GetFromJsonAsync<int>("/trivia/count");
+    }
+}

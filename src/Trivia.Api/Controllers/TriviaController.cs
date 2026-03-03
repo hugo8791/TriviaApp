@@ -22,6 +22,12 @@ public class TriviaController(IHttpClientFactory httpClientFactory, TriviaDbCont
 
         return Ok(await query.ToListAsync());
     }
+    
+    [HttpGet("count")]
+    public async Task<IActionResult> GetQuestionsCount()
+    {
+        return Ok(await dbContext.Questions.CountAsync());
+    }
 
     [HttpGet("categories")]
     public async Task<IActionResult> GetCategories()
