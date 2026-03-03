@@ -1,29 +1,230 @@
 @page "/quiz"
 @inject HttpClient Http
+@using Trivia.Shared.Models
 
 <PageTitle>Quiz</PageTitle>
 
 <h1>Trivia Quiz</h1>
 
-<p class="lead">
-    @if (questionCount == null)
-    {
-        <span>Loading...</span>
-    }
-    else
-    {
-        <span>@questionCount questions available</span>
-    }
-</p>
+@if (_errorMessage != null)
+{
+    <div class="alert alert-danger mt-3">@_errorMessage</div>
+}
 
-<button class="btn btn-primary" disabled="@(questionCount == null)">
-    Start Quiz
-</button>
+@if (_state == QuizState.Setup)
+{
+    <p class="lead">
+        @if (_questionCount == null)
+        {
+            <span>Loading...</span>
+        }
+        else
+        {
+            <span>@_questionCount questions available</span>
+        }
+    </p>
+    
+    <div class="mb-3" style="max-width: 300px;">
+        <label class="form-label">Difficulty</label>
+        <select class="form-select" @bind="_selectedDifficulty">
+            <option value="">All difficulties</option>
+            @foreach (var dif in _dificulties)
+            {
+                <option value="@dif">@dif</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3" style="max-width: 300px;">
+        <label class="form-label">Category</label>
+        <select class="form-select" @bind="_selectedCategory">
+            <option value="">All categories</option>
+            @foreach (var cat in _categories)
+            {
+                <option value="@cat">@cat</option>
+            }
+        </select>
+    </div>
+
+    <div class="mb-3" style="max-width: 200px;">
+        <label class="form-label">Number of questions (1–20)</label>
+        <input type="number" class="form-control" @bind="_amount" min="1" max="20" />
+    </div>
+
+    <button class="btn btn-primary"
+            @onclick="StartQuiz"
+            disabled="@(_questionCount == null || _isLoading)">
+        @(_isLoading ? "Loading..." : "Start Quiz")
+    </button>
+}
+else if (_state == QuizState.InProgress)
+{
+    var question = _questions[_currentIndex];
+
+    <p class="text-muted">
+        Question @(_currentIndex + 1) of @_questions.Count
+        &nbsp;|&nbsp; @question.Category
+        &nbsp;|&nbsp; @question.Difficulty
+    </p>
+
+    <h4 class="mb-4">@question.Question</h4>
+
+    <div class="d-grid gap-2" style="max-width: 500px;">
+        @foreach (var answer in question.Answers)
+        {
+            <button class="btn @GetAnswerButtonClass(answer)"
+                    @onclick="() => SelectAnswer(answer)"
+                    disabled="@(_answerResult != null || _isLoading)">
+                @answer.Text
+            </button>
+        }
+    </div>
+
+    @if (_answerResult != null)
+    {
+        <div class="mt-3">
+            @if (_answerResult.IsCorrect)
+            {
+                <p class="text-success fw-bold">Correct!</p>
+            }
+            else
+            {
+                <p class="text-danger fw-bold">
+                    Wrong! The correct answer was: @_answerResult.CorrectAnswerText
+                </p>
+            }
+            <button class="btn btn-secondary mt-2" @onclick="NextQuestion">
+                @(_currentIndex >= _questions.Count - 1 ? "See Results" : "Next Question")
+            </button>
+        </div>
+    }
+}
+else if (_state == QuizState.Results)
+{
+    <h3>Quiz Complete!</h3>
+    <p class="lead">
+        You scored <strong>@_score</strong> out of <strong>@_questions.Count</strong>
+        (@(_questions.Count > 0 ? _score * 100 / _questions.Count : 0)%)
+    </p>
+    <button class="btn btn-primary" @onclick="PlayAgain">Play Again</button>
+}
 
 @code {
-    int? questionCount;
+    private enum QuizState { Setup, InProgress, Results }
+    private QuizState _state = QuizState.Setup;
+
+    private int? _questionCount;
+    private List<string> _dificulties = [];
+    private List<string> _categories = [];
+    private string _selectedDifficulty = "";
+    private string _selectedCategory = "";
+    private int _amount = 10;
+
+    private List<QuizQuestion> _questions = [];
+    private int _currentIndex;
+    private int _score;
+    private QuizAnswer? _selectedAnswer;
+    private AnswerResult? _answerResult;
+
+    private bool _isLoading;
+    private string? _errorMessage;
+
     protected override async Task OnInitializedAsync()
     {
-        questionCount = await Http.GetFromJsonAsync<int>("/trivia/count");
+        var countTask = Http.GetFromJsonAsync<int>("/trivia/count");
+        var difficultiesTask = Http.GetFromJsonAsync<List<string>>("/trivia/difficulties");
+        var categoriesTask = Http.GetFromJsonAsync<List<string>>("/trivia/categories");
+        await Task.WhenAll(countTask, difficultiesTask, categoriesTask);
+        _questionCount = countTask.Result;
+        _dificulties = difficultiesTask.Result ?? [];
+        _categories = categoriesTask.Result ?? [];
+    }
+
+    private async Task StartQuiz()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        try
+        {
+            var url = $"/trivia/questions?amount={_amount}";
+            if (!string.IsNullOrEmpty(_selectedCategory))
+                url += $"&category={Uri.EscapeDataString(_selectedCategory)}";
+            if (!string.IsNullOrEmpty(_selectedDifficulty))
+                url += $"&difficulty={Uri.EscapeDataString(_selectedDifficulty)}";
+
+            var result = await Http.GetFromJsonAsync<List<QuizQuestion>>(url);
+            if (result is null || result.Count == 0)
+            {
+                _errorMessage = "No questions found for the selected options.";
+                return;
+            }
+            _questions = result;
+            _currentIndex = 0;
+            _score = 0;
+            _selectedAnswer = null;
+            _answerResult = null;
+            _state = QuizState.InProgress;
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Could not load quiz questions. Make sure the API is running.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private async Task SelectAnswer(QuizAnswer answer)
+    {
+        if (_answerResult != null || _isLoading) return;
+        _selectedAnswer = answer;
+        _isLoading = true;
+        try
+        {
+            var submission = new AnswerSubmission(_questions[_currentIndex].Id, answer.Id);
+            var response = await Http.PostAsJsonAsync("/trivia/checkanswer", submission);
+            _answerResult = await response.Content.ReadFromJsonAsync<AnswerResult>();
+            if (_answerResult?.IsCorrect == true) _score++;
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Could not check answer. Make sure the API is running.";
+            _selectedAnswer = null;
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+
+    private void NextQuestion()
+    {
+        if (_currentIndex >= _questions.Count - 1)
+            _state = QuizState.Results;
+        else
+        {
+            _currentIndex++;
+            _selectedAnswer = null;
+            _answerResult = null;
+        }
+    }
+
+    private void PlayAgain()
+    {
+        _questions = [];
+        _currentIndex = 0;
+        _score = 0;
+        _selectedAnswer = null;
+        _answerResult = null;
+        _state = QuizState.Setup;
+    }
+
+    private string GetAnswerButtonClass(QuizAnswer answer)
+    {
+        if (_answerResult == null) return "btn-outline-secondary";
+        if (answer.Text == _answerResult.CorrectAnswerText) return "btn-success";
+        if (answer == _selectedAnswer) return "btn-danger";
+        return "btn-outline-secondary";
     }
 }

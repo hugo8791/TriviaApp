@@ -46,7 +46,7 @@
             if (response.IsSuccessStatusCode)
                 _result = await response.Content.ReadFromJsonAsync<SeedResult>();
             else
-                _errorMessage = $"Failed to fetch questions ({(int)response.StatusCode} {response.ReasonPhrase}).";
+                _errorMessage = await response.Content.ReadAsStringAsync();
         }
         catch (Exception)
         {
