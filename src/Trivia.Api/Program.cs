@@ -15,9 +15,15 @@ builder.Services.AddCors(options =>
               .AllowAnyHeader());
 });
 builder.Services.AddDbContext<Trivia.Api.Data.TriviaDbContext>(options =>
-    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<Trivia.Api.Data.TriviaDbContext>();
+    db.Database.Migrate();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
