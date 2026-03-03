@@ -1,0 +1,7 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Trivia.Api/Trivia.Api.csproj" />
+    <Project Path="src/Trivia.Client/Trivia.Client.csproj" />
+    <Project Path="src/Trivia.Shared/Trivia.Shared.csproj" />
+  </Folder>
+</Solution>
