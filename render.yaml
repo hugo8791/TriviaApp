@@ -5,8 +5,8 @@ services:
     buildCommand: |
       curl -sSL https://dot.net/v1/dotnet-install.sh | bash /dev/stdin --channel 10.0
       export PATH="$HOME/.dotnet:$PATH"
-      dotnet publish src/Trivia.Client/Trivia.Client.csproj -c Release -o /tmp/publish
-    staticPublishPath: /tmp/publish/wwwroot
+      dotnet publish src/Trivia.Client/Trivia.Client.csproj -c Release -o ./publish
+    staticPublishPath: ./publish/wwwroot
     routes:
       - type: rewrite
         source: /*
