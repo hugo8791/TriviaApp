@@ -1,0 +1,60 @@
+@page "/seed"
+@inject HttpClient Http
+@using Trivia.Shared.Models
+
+<PageTitle>Seed Questions</PageTitle>
+
+<h1>Add Questions</h1>
+
+<p class="lead">Fetch new trivia questions from the internet and add them to the database.</p>
+
+<div class="mb-3" style="max-width: 200px;">
+    <label class="form-label">Number of questions (1–50)</label>
+    <input type="number" class="form-control" @bind="_amount" min="1" max="50" />
+</div>
+
+<button class="btn btn-primary" @onclick="SeedQuestions" disabled="@_isLoading">
+    @(_isLoading ? "Adding..." : "Add Questions")
+</button>
+
+@if (_result != null)
+{
+    <div class="alert alert-success mt-3">
+        Added @_result.Saved new questions (@_result.Skipped duplicates skipped).
+    </div>
+}
+
+@if (_errorMessage != null)
+{
+    <div class="alert alert-danger mt-3">@_errorMessage</div>
+}
+
+@code {
+    private int _amount = 10;
+    private bool _isLoading = false;
+    private string? _errorMessage;
+    private SeedResult? _result;
+
+    private async Task SeedQuestions()
+    {
+        _isLoading = true;
+        _errorMessage = null;
+        _result = null;
+        try
+        {
+            var response = await Http.PostAsync($"/trivia/seed?amount={_amount}", null);
+            if (response.IsSuccessStatusCode)
+                _result = await response.Content.ReadFromJsonAsync<SeedResult>();
+            else
+                _errorMessage = $"Failed to fetch questions ({(int)response.StatusCode} {response.ReasonPhrase}).";
+        }
+        catch (Exception)
+        {
+            _errorMessage = "Could not reach the API. Try again later.";
+        }
+        finally
+        {
+            _isLoading = false;
+        }
+    }
+}

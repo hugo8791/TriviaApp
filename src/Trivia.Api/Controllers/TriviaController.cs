@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Trivia.Api.Data;
 using Trivia.Api.Models;
 using Trivia.Api.Transformers;
+using Trivia.Shared.Models;
 
 namespace Trivia.Api.Controllers;
 
@@ -69,6 +70,6 @@ public class TriviaController(IHttpClientFactory httpClientFactory, TriviaDbCont
         await dbContext.Questions.AddRangeAsync(newEntities);
         await dbContext.SaveChangesAsync();
 
-        return Ok(new { saved = newEntities.Count, skipped = existingTexts.Count });
+        return Ok(new SeedResult(newEntities.Count, existingTexts.Count));
     }
 }
