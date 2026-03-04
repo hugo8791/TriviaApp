@@ -137,16 +137,20 @@ public class TriviaController(IHttpClientFactory httpClientFactory, TriviaDbCont
         if (response is null || response.ResponseCode != 0)
             return StatusCode(502, "Failed to retrieve trivia questions.");
 
-        var incomingTexts = response.Results.Select(q => q.Question).ToHashSet();
+        var candidates = response.Results
+            .Select(OpenTdbTransformer.ToEntity)
+            .ToList();
 
-        var existingTexts = await dbContext.Questions
+        var incomingTexts = candidates.Select(q => q.Question).ToHashSet();
+
+        var existingTexts = (await dbContext.Questions
             .Where(q => incomingTexts.Contains(q.Question))
             .Select(q => q.Question)
-            .ToListAsync();
+            .ToListAsync())
+            .ToHashSet();
 
-        var newEntities = response.Results
+        var newEntities = candidates
             .Where(q => !existingTexts.Contains(q.Question))
-            .Select(OpenTdbTransformer.ToEntity)
             .ToList();
 
         await dbContext.Questions.AddRangeAsync(newEntities);
