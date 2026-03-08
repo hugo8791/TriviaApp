@@ -79,3 +79,16 @@ dotnet test
 ## Deployment
 
 The application is deployed automatically to Render on every push to `main` via GitHub Actions. The workflow builds the solution, runs all tests, and triggers a Render deploy hook if everything passes.
+
+All services run on Render's free tier:
+
+| Service | Type | URL |
+|---------|------|-----|
+| Frontend | Static Site | https://triviaapp-jmpg.onrender.com |
+| Backend | Web Service | https://triviaappbackend-cug1.onrender.com |
+| Database | PostgreSQL | Render managed database |
+
+**Note on free tier limitations:**
+- The backend web service spins down after 15 minutes of inactivity. The first request after a period of inactivity may take up to a minute to respond while it restarts.
+- The free PostgreSQL database expires 30 days after creation. If the app is unavailable, the database may need to be recreated.
+- The frontend static site has no spin-down and stays live indefinitely.
