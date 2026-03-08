@@ -12,8 +12,8 @@ public static class TriviaEntityTransformer
             entity.Category,
             entity.Difficulty,
             entity.Answers
-                .OrderBy(_ => Random.Shared.Next())
                 .Select(a => new QuizAnswer(a.Id, a.Text))
+                .OrderBy(_ => Random.Shared.Next())
                 .ToList()
         );
 }

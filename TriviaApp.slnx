@@ -4,4 +4,7 @@
     <Project Path="src/Trivia.Client/Trivia.Client.csproj" />
     <Project Path="src/Trivia.Shared/Trivia.Shared.csproj" />
   </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Trivia.Api.Tests/Trivia.Api.Tests.csproj" />
+  </Folder>
 </Solution>

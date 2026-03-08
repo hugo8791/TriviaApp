@@ -12,24 +12,6 @@ namespace Trivia.Api.Controllers;
 [Route("[controller]")]
 public class TriviaController(IHttpClientFactory httpClientFactory, TriviaDbContext dbContext, IConfiguration configuration) : ControllerBase
 {
-    [HttpGet]
-    public async Task<IActionResult> GetQuestions(
-        [FromQuery] string? category = null,
-        [FromQuery] string? difficulty = null)
-    {
-        var query = dbContext.Questions
-            .Include(q => q.Answers)
-            .AsQueryable();
-
-        if (category is not null)
-            query = query.Where(q => q.Category == category);
-
-        if (difficulty is not null)
-            query = query.Where(q => q.Difficulty == difficulty);
-
-        return Ok(await query.ToListAsync());
-    }
-    
     [HttpGet("count")]
     public async Task<IActionResult> GetQuestionsCount()
     {

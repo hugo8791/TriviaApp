@@ -28,7 +28,7 @@
         <label class="form-label">Difficulty</label>
         <select class="form-select" @bind="_selectedDifficulty">
             <option value="">All difficulties</option>
-            @foreach (var dif in _dificulties)
+            @foreach (var dif in _difficulties)
             {
                 <option value="@dif">@dif</option>
             }
@@ -114,7 +114,7 @@ else if (_state == QuizState.Results)
     private QuizState _state = QuizState.Setup;
 
     private int? _questionCount;
-    private List<string> _dificulties = [];
+    private List<string> _difficulties = [];
     private List<string> _categories = [];
     private string _selectedDifficulty = "";
     private string _selectedCategory = "";
@@ -136,7 +136,7 @@ else if (_state == QuizState.Results)
         var categoriesTask = Http.GetFromJsonAsync<List<string>>("/trivia/categories");
         await Task.WhenAll(countTask, difficultiesTask, categoriesTask);
         _questionCount = countTask.Result;
-        _dificulties = difficultiesTask.Result ?? [];
+        _difficulties = difficultiesTask.Result ?? [];
         _categories = categoriesTask.Result ?? [];
     }
 
