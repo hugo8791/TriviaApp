@@ -13,13 +13,13 @@ namespace Trivia.Api.Controllers;
 public class TriviaController(IHttpClientFactory httpClientFactory, TriviaDbContext dbContext, IConfiguration configuration) : ControllerBase
 {
     [HttpGet("count")]
-    public async Task<IActionResult> GetQuestionsCount()
+    public async Task<ActionResult<int>> GetQuestionsCount()
     {
         return Ok(await dbContext.Questions.CountAsync());
     }
 
     [HttpGet("categories")]
-    public async Task<IActionResult> GetCategories()
+    public async Task<ActionResult<List<string>>> GetCategories()
     {
         var categories = await dbContext.Questions
             .Select(q => q.Category)
@@ -29,9 +29,9 @@ public class TriviaController(IHttpClientFactory httpClientFactory, TriviaDbCont
 
         return Ok(categories);
     }
-    
+
     [HttpGet("difficulties")]
-    public async Task<IActionResult> GetDifficulties()
+    public async Task<ActionResult<List<string>>> GetDifficulties()
     {
         var difficulties = await dbContext.Questions
             .Select(q => q.Difficulty)
@@ -48,7 +48,7 @@ public class TriviaController(IHttpClientFactory httpClientFactory, TriviaDbCont
     }
 
     [HttpGet("questions")]
-    public async Task<IActionResult> GetQuizQuestions(
+    public async Task<ActionResult<List<QuizQuestion>>> GetQuizQuestions(
         [FromQuery] string? category = null,
         [FromQuery] string? difficulty = null,
         [FromQuery] int amount = 10)
@@ -78,7 +78,7 @@ public class TriviaController(IHttpClientFactory httpClientFactory, TriviaDbCont
     }
 
     [HttpPost("checkanswer")]
-    public async Task<IActionResult> CheckAnswer([FromBody] AnswerSubmission submission)
+    public async Task<ActionResult<AnswerResult>> CheckAnswer([FromBody] AnswerSubmission submission)
     {
         var question = await dbContext.Questions
             .Include(q => q.Answers)
@@ -97,7 +97,7 @@ public class TriviaController(IHttpClientFactory httpClientFactory, TriviaDbCont
     }
 
     [HttpPost("seed")]
-    public async Task<IActionResult> SeedQuestions([FromQuery] int amount = 10)
+    public async Task<ActionResult<SeedResult>> SeedQuestions([FromQuery] int amount = 10)
     {
         if (amount is < 1 or > 50)
             return BadRequest("Amount must be between 1 and 50.");
