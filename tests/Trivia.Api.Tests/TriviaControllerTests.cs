@@ -70,7 +70,7 @@ public class TriviaControllerTests
 
         var result = await controller.GetQuestionsCount();
 
-        var ok = Assert.IsType<OkObjectResult>(result);
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
         Assert.Equal(3, ok.Value);
     }
 
@@ -83,7 +83,7 @@ public class TriviaControllerTests
 
         var result = await controller.GetCategories();
 
-        var ok = Assert.IsType<OkObjectResult>(result);
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
         var categories = Assert.IsAssignableFrom<List<string>>(ok.Value);
         Assert.Equal(["Geography", "Math", "Science"], categories);
     }
@@ -97,7 +97,7 @@ public class TriviaControllerTests
 
         var result = await controller.GetDifficulties();
 
-        var ok = Assert.IsType<OkObjectResult>(result);
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
         var difficulties = Assert.IsAssignableFrom<IEnumerable<string>>(ok.Value);
         Assert.Equal(["Easy", "Hard"], difficulties);
     }
@@ -112,7 +112,7 @@ public class TriviaControllerTests
 
         var result = await controller.GetQuizQuestions(amount: amount);
 
-        Assert.IsType<BadRequestObjectResult>(result);
+        Assert.IsType<BadRequestObjectResult>(result.Result);
     }
 
     [Fact]
@@ -124,7 +124,7 @@ public class TriviaControllerTests
 
         var result = await controller.GetQuizQuestions(amount: 2);
 
-        var ok = Assert.IsType<OkObjectResult>(result);
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
         var questions = Assert.IsAssignableFrom<List<QuizQuestion>>(ok.Value);
         Assert.Equal(2, questions.Count);
     }
@@ -138,7 +138,7 @@ public class TriviaControllerTests
 
         var result = await controller.GetQuizQuestions(category: "Math", amount: 10);
 
-        var ok = Assert.IsType<OkObjectResult>(result);
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
         var questions = Assert.IsAssignableFrom<List<QuizQuestion>>(ok.Value);
         Assert.Single(questions);
         Assert.Equal("Math", questions[0].Category);
@@ -153,7 +153,7 @@ public class TriviaControllerTests
 
         var result = await controller.GetQuizQuestions(difficulty: "Hard", amount: 10);
 
-        var ok = Assert.IsType<OkObjectResult>(result);
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
         var questions = Assert.IsAssignableFrom<List<QuizQuestion>>(ok.Value);
         Assert.Single(questions);
         Assert.Equal("Hard", questions[0].Difficulty);
@@ -171,7 +171,7 @@ public class TriviaControllerTests
 
         var result = await controller.CheckAnswer(new AnswerSubmission(question.Id, correctAnswer.Id));
 
-        var ok = Assert.IsType<OkObjectResult>(result);
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
         var answerResult = Assert.IsType<AnswerResult>(ok.Value);
         Assert.True(answerResult.IsCorrect);
         Assert.Equal("4", answerResult.CorrectAnswerText);
@@ -189,7 +189,7 @@ public class TriviaControllerTests
 
         var result = await controller.CheckAnswer(new AnswerSubmission(question.Id, wrongAnswer.Id));
 
-        var ok = Assert.IsType<OkObjectResult>(result);
+        var ok = Assert.IsType<OkObjectResult>(result.Result);
         var answerResult = Assert.IsType<AnswerResult>(ok.Value);
         Assert.False(answerResult.IsCorrect);
         Assert.Equal("4", answerResult.CorrectAnswerText);
@@ -203,7 +203,7 @@ public class TriviaControllerTests
 
         var result = await controller.CheckAnswer(new AnswerSubmission(999, 1));
 
-        Assert.IsType<NotFoundObjectResult>(result);
+        Assert.IsType<NotFoundObjectResult>(result.Result);
     }
 
     [Fact]
@@ -217,7 +217,7 @@ public class TriviaControllerTests
 
         var result = await controller.CheckAnswer(new AnswerSubmission(question.Id, 999));
 
-        Assert.IsType<NotFoundObjectResult>(result);
+        Assert.IsType<NotFoundObjectResult>(result.Result);
     }
 
     [Theory]
@@ -230,6 +230,6 @@ public class TriviaControllerTests
 
         var result = await controller.SeedQuestions(amount: amount);
 
-        Assert.IsType<BadRequestObjectResult>(result);
+        Assert.IsType<BadRequestObjectResult>(result.Result);
     }
 }
