@@ -89,6 +89,6 @@ All services run on Render's free tier:
 | Database | PostgreSQL | Render managed database |
 
 **Note on free tier limitations:**
-- The backend web service spins down after 15 minutes of inactivity. The first request after a period of inactivity may take up to a minute to respond while it restarts.
+- The backend web service spins down after 15 minutes of inactivity. The first request after a period of inactivity may take up to a minute to respond while it restarts. You can visit the backend URL directly to watch the startup progress, once it returns a response, the frontend will be ready to use.
 - The free PostgreSQL database expires 30 days after creation. If the app is unavailable, the database may need to be recreated.
 - The frontend static site has no spin-down and stays live indefinitely.
